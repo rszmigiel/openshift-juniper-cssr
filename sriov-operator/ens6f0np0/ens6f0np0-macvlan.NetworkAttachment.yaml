@@ -1,0 +1,14 @@
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: ens6f0np0-macvlan
+spec:
+  config: |- 
+    {
+    "cniVersion": "0.3.1",
+    "name": "ens6f0np0-macvlan",
+    "type": "macvlan",
+    "master": "ens6f0v0",
+    "mode": "bridge",
+    "promiscMode": "true"
+    }

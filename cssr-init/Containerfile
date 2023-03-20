@@ -1,0 +1,11 @@
+FROM registry.access.redhat.com/ubi8
+MAINTAINER "rafal@redhat.com"
+
+ARG ORG_ID
+ARG ACTIVATION_KEY
+RUN rm -rf /etc/rhsm-host
+RUN subscription-manager register --org=${ORG_ID} --activationkey=${ACTIVATION_KEY}
+RUN subscription-manager release --set=8.4
+
+CMD ["/bin/sleep","infinity"]
+

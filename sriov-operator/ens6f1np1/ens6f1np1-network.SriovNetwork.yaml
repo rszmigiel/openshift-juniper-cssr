@@ -1,0 +1,15 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: ens6f1np1-sriovnetwork
+  namespace: openshift-sriov-network-operator
+spec:
+  resourceName: ens6f1np1
+  networkNamespace: cssr
+  spoofChk: "off" 
+  trust: "on" 
+  capabilities: |-
+    {
+      "mac": true,
+      "ips": true
+    }

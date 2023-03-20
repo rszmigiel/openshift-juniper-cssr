@@ -1,0 +1,14 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: ens6f1np1
+  namespace: openshift-sriov-network-operator
+spec:
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
+  resourceName: ens6f1np1
+  needVhostNet: false
+  isRdma: false
+  numVfs: 8
+  nicSelector:
+    pfNames: ["ens6f1np1#1-7"]

@@ -1,0 +1,15 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 05-master-kernelarg-hugepages
+spec:
+  config:
+    ignition:
+      version: 3.1.0
+  kernelArguments:
+    - default_hugepagesz=2M
+    - hugepagesz=2M
+    - hugepages=8196
+    - intel_iommu=on
