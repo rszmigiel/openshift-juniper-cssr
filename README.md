@@ -51,19 +51,19 @@ Juniper provides following two container images:
 
 
 The first one is a module builder which can be used to build the required *rte_kni.ko* and *igb_uio.ko* modules. It requires kernel modules from `/usr/lib/modules/$(uname -r)` and kernel headers from `/usr/src/kernels/$(uname -r)`.
-It is [init-modules's](cssr-statefulset.yaml#L26-47) *initContainer* job to populate these two directories before *kmod-builder* will start. They will be loaded to [modules volume](cssr-modules-volume.yaml) which is shared between all cSSR pods running within the same StatefulSet.
+It is [init-modules's](cssr-statefulset.yaml#L26-L47) *initContainer* job to populate these two directories before *kmod-builder* will start. They will be loaded to [modules volume](cssr-modules-volume.yaml) which is shared between all cSSR pods running within the same StatefulSet.
 *Please note: there is an assumption made that all OpenShift nodes have the same kernel version.*
 
-The next step is to put the default configuration files from cSSR image to [cssr-data volume](cssr-statefulset.yaml#L140-148), so it will persist across cSSR container restarts/deletions until it will be manually removed by operator.
-This is done with [cssr-init-data](cssr-statefulset.yaml#L48-61) *initContainer*.  
+The next step is to put the default configuration files from cSSR image to [cssr-data volume](cssr-statefulset.yaml#L140-L148), so it will persist across cSSR container restarts/deletions until it will be manually removed by operator.
+This is done with [cssr-init-data](cssr-statefulset.yaml#L48-L61) *initContainer*.  
 Currently the following dictionaries are being copied:
 - /var/128technology
 - /etc/128t-monitoring
 *Please note: cssr-data volume is persistent and unique for each cSSR running pod. By default we get only one but if we scale it out, new volume will be created and configured for the new cSSR pod.*
   
-At this stage we can build the missing DPDK modules inside of another initContainer [cssr-kmod-builder](cssr-statefulset.yaml#L62-81).
+At this stage we can build the missing DPDK modules inside of another initContainer [cssr-kmod-builder](cssr-statefulset.yaml#L62-L81).
   
-Once the three above steps are done with initContainers, the actual [cSSR container](cssr-statefulset.yaml#L83-108) is being started.
+Once the three above steps are done with initContainers, the actual [cSSR container](cssr-statefulset.yaml#L83-L108) is being started.
 
 ## Authors and acknowledgment
 Rafal Szmigiel <rafal_at_redhat_dot_com>
