@@ -20,8 +20,6 @@ spec:
       labels:
         app: cssr-test
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: master-0
       initContainers:
       - name: init-modules
         image: image-registry.openshift-image-registry.svc:5000/default/cssr-init:latest
