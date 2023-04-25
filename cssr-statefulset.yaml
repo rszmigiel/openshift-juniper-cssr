@@ -22,6 +22,7 @@ spec:
     spec:
       initContainers:
       - name: cssr-init-data
+        imagePullPolicy: IfNotPresent
         image: quay.io/juniper-128t/128t-5121:latest
         securityContext:
           privileged: true
