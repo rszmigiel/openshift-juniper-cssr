@@ -37,7 +37,7 @@ spec:
           name: cssr-data
       containers:
       - image: quay.io/juniper-128t/128t-5121:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true
         name: 128t
