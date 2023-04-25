@@ -1,28 +1,47 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: DaemonSet
 metadata:
-  creationTimestamp: null
-  labels:
-    app: cssr-test
-  name: cssr-test
+  name: cssr-modules-daemonset
+  namespace: cssr-modules-daemonset
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      app: cssr-test
+      app: cssr-modules-daemonset
   strategy: {}
   template:
     metadata:
       annotations:
         openshift.io/scc: privileged
-        k8s.v1.cni.cncf.io/networks: '[ { "name": "ens6f0np0-macvlan" }, { "name": "ens6f1np1-macvlan" } ]'
-      creationTimestamp: null
       labels:
-        app: cssr-test
+        app: cssr-modules-daemonset
     spec:
       initContainers:
-      - name: cssr-init-data
-        image: quay.io/juniper-128t/128t-5121:latest
+      - name: init-modules
+        securityContext:
+          privileged: true
+        image: image-registry.openshift-image-registry.svc:5000/default/cssr-init:latest
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - >-
+          set -x &&
+          if [ ! -d /usr/src/kernels/$(uname -r) ]
+            then dnf install -y --enablerepo=rhel-8-for-x86_64-baseos-eus-rpms kernel-devel-$(uname -r)
+          fi &&
+          if [ ! -d /usr/lib/modules/$(uname -r) ]
+            then cp -RPfp /mnt/$(uname -r) /usr/lib/modules
+          fi
+        volumeMounts:
+        - mountPath: /usr/lib/modules
+          name: modules
+          subPath: modules
+        - mountPath: /usr/src/kernels
+          name: modules
+          subPath: kernels
+        - mountPath: /mnt
+          name: modules-node
+      - name: cssr-kmod-builder
+        image: quay.io/juniper-128t/kmod-builder-51:latest
         securityContext:
           privileged: true
         command: ["/bin/bash"]
@@ -30,45 +49,25 @@ spec:
         - -c
         - >-
           set -x &&
-          if [ ! -d /mnt/var-128technology ]; then cp -RPfp /var/128technology /mnt/var-128technology; fi &&
-          if [ ! -d /mnt/etc-128t-monitoring  ]; then cp -RPfp /etc/128t-monitoring /mnt/etc-128t-monitoring; fi
-        volumeMounts:
-        - mountPath: /mnt
-          name: cssr-data
-      containers:
-      - image: quay.io/juniper-128t/128t-5121:latest
-        imagePullPolicy: Always
-        securityContext:
-          privileged: true
-        name: 128t
-        resources:
-          limits:
-            cpu: "2"
-            hugepages-2Mi: 4Gi
-          requests:
-            cpu: "2"
-            hugepages-2Mi: 4Gi
+          export DPDK_PATH="/usr/lib/modules/$(uname -r)/dpdk" &&
+          if [ ! -d ${DPDK_PATH} ] || [ ! -f ${DPDK_PATH}/igb_uio.ko ] || [ ! -f ${DPDK_PATH}/rte_kni.ko ]
+            then /usr/bin/dpdk_build.sh /usr/share/128technology/dpdk/src
+          fi
         volumeMounts:
         - mountPath: /usr/lib/modules
           name: modules
           subPath: modules
-        - mountPath: /dev
-          name: dev
-        - mountPath: /hugepages
-          name: hugepage
-        - name: cssr-data
-          mountPath: /var/128technology
-          subPath: var-128technology
-        - name: cssr-data
-          mountPath: /etc/128t-monitoring
-          subPath: etc-128t-monitoring
-        lifecycle:
-          preStop:
-            exec:
-              command:
-              - sh
-              - -c
-              - service 128T stop
+        - mountPath: /usr/src/kernels
+          name: modules
+          subPath: kernels
+      containers:
+      - name: sweet-dreams
+        image: ubi8
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - >-
+          sleep infinity
       preemptionPolicy: PreemptLowerPriority
       securityContext: {}
       tolerations:
@@ -87,7 +86,7 @@ spec:
       - name: modules
         hostPath:
           path: /mnt/cssr
-          type: Directory
+          type: DirectoryOrCreate
       - hostPath:
           path: /dev
           type: Directory
